@@ -1,0 +1,21 @@
+{
+  "tasks": {
+    "run": "deno run --allow-read --allow-run --allow-write ./src/main.ts tests",
+    "build": "deno compile --output commander --allow-read --allow-run --allow-write ./src/main.ts",
+    "check": "deno lint && deno fmt"
+  },
+  "imports": {
+    "@std/cli": "jsr:@std/cli@^1.0.13",
+    "@std/fmt": "jsr:@std/fmt@^1.0.5",
+    "@std/fs": "jsr:@std/fs@^1.0.13",
+    "@std/path": "jsr:@std/path@^1.0.8",
+    "@std/text": "jsr:@std/text@^1.0.10",
+    "@std/toml": "jsr:@std/toml@^1.0.2"
+  },
+  "lint": {
+    "include": ["src", "tests"]
+  },
+  "fmt": {
+    "include": ["src", "tests"]
+  }
+}
