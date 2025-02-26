@@ -1,8 +1,7 @@
 {
   "tasks": {
     "run": "deno run --allow-read --allow-run --allow-write ./src/main.ts tests",
-    "build": "deno compile --output commander --allow-read --allow-run --allow-write ./src/main.ts",
-    "check": "deno lint && deno fmt"
+    "build": "deno compile --output commander --allow-read --allow-run --allow-write ./src/main.ts"
   },
   "imports": {
     "@std/cli": "jsr:@std/cli@^1.0.13",

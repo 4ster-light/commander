@@ -1,20 +1,20 @@
-import { bold, underline, yellow, blue } from "@std/fmt/colors";
+import { bold, underline, yellow, blue, green, cyan } from "@std/fmt/colors";
 import { Config } from "./config.ts";
 
 export function showHelp() {
-  console.log(bold(underline("Commander - A CLI tool to manage code challenges with Deno")));
-  console.log("\nUsage:");
-  console.log("  commander [options] [directory]");
-  console.log("\nOptions:");
-  console.log("  -h, --help              Show this help message");
-  console.log("  -i, --init              Create a default config file");
-  console.log("  -c, --config <path>     Specify config file path (default: config.toml)");
-  console.log("  -d, --dir <path>        Specify directory to process");
-  console.log("  -l, --list              List supported languages and their configurations");
-  console.log("\nExamples:");
-  console.log("  commander tests");
-  console.log("  commander --init");
-  console.log("  commander --dir=tests --config=custom.toml");
+  console.log(bold(underline("Commander - The CLI to manage code challenges")));
+  console.log(`\n  ${underline(bold(cyan("Usage:")))}`);
+  console.log(`    ${blue("commander")} ${yellow("[options]")} ${green("[directory]")}`);
+  console.log(`\n  ${underline(bold(cyan("Options:")))}`);
+  console.log(`    ${yellow("-h")}, ${yellow("--help")}              Show this help message`);
+  console.log(`    ${yellow("-i")}, ${yellow("--init")}              Create a default config file`);
+  console.log(`    ${yellow("-c")}, ${yellow("--config=<path>")}     Specify config file path (default: config.toml)`);
+  console.log(`    ${yellow("-d")}, ${yellow("--dir=<path>")}        Specify directory to process`);
+  console.log(`    ${yellow("-l")}, ${yellow("--list")}              List supported languages and their configurations`);
+  console.log(`\n  ${underline(bold(cyan("Examples:")))}`);
+  console.log(`    ${blue("commander")} ${green("tests")}`);
+  console.log(`    ${blue("commander")} ${yellow("--init")}`);
+  console.log(`    ${blue("commander")} ${yellow("--dir=tests")} ${yellow("--config=custom.toml")}`);
 }
 
 export function listLanguages(config: Config) {
