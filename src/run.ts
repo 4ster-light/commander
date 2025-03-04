@@ -12,14 +12,16 @@ export async function runFile(file: string, langConfig: LanguageConfig) {
   const args = [...runner.split(" ").slice(1), ...flags, file];
 
   try {
-    const process = new Deno.Command(command, {
+    const {
+      success,
+      stdout,
+      stderr
+    } = await new Deno.Command(command, {
       args,
-      stdin: "piped",
       stdout: "piped",
       stderr: "piped",
-    }).spawn();
+    }).output();
 
-    const { success, stdout, stderr } = await process.output();
     const decoder = new TextDecoder();
 
     if (success) {
