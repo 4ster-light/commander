@@ -1,97 +1,93 @@
 import { exists } from "@std/fs";
-import { join } from "@std/path";
+import { join, isAbsolute } from "@std/path";
 import { parse, stringify } from "@std/toml";
 
 export type LanguageConfig = {
   runner: string;
   flags: string[];
   directories: string[];
-}
+};
 
 export type ConfigData = {
   languages: Record<string, LanguageConfig>;
+};
+
+const DEFAULT_LANGUAGES: Record<string, LanguageConfig> = {
+  ts: {
+    runner: "deno",
+    flags: ["run", "--allow-read"],
+    directories: ["scripts", "tests"],
+  },
+  js: {
+    runner: "node",
+    flags: [],
+    directories: ["scripts", "tests"],
+  },
+} as const;
+
+function mergeLanguageConfig(
+  loaded: unknown,
+  defaultConfig?: LanguageConfig,
+): LanguageConfig {
+  if (typeof loaded !== "object" || loaded === null) {
+    return defaultConfig ?? { runner: "unknown", flags: [], directories: [] };
+  }
+
+  const obj = loaded as Record<string, unknown>;
+  return {
+    runner: typeof obj.runner === "string" ? obj.runner : defaultConfig?.runner ?? "unknown",
+    flags: Array.isArray(obj.flags)
+      ? obj.flags.filter((f): f is string => typeof f === "string")
+      : defaultConfig?.flags ?? [],
+    directories: Array.isArray(obj.directories)
+      ? obj.directories.filter((d): d is string => typeof d === "string")
+      : defaultConfig?.directories ?? [],
+  };
 }
 
 export class Config {
-  data: ConfigData;
-  path: string;
+  private data: ConfigData;
+  private readonly path: string;
 
-  constructor(configPath?: string) {
-    this.path = configPath || "commander.toml";
-    this.data = {
-      languages: {
-        ts: {
-          runner: "deno",
-          flags: ["run", "--allow-read"],
-          directories: ["scripts", "tests"],
-        },
-        js: {
-          runner: "node",
-          flags: [],
-          directories: ["scripts", "tests"],
-        },
-      },
-    };
+  constructor(configPath = "commander.toml") {
+    this.path = configPath;
+    this.data = { languages: { ...DEFAULT_LANGUAGES } };
   }
 
-  async load(): Promise<Config> {
-    const configFilePath = join(Deno.cwd(), this.path);
+  async load(): Promise<void> {
+    const filePath = isAbsolute(this.path) ? this.path : join(Deno.cwd(), this.path);
+    if (!(await exists(filePath))) return;
 
-    if (await exists(configFilePath)) {
-      try {
-        const content = await Deno.readTextFile(configFilePath);
-        const languages = parse(content).languages as Record<string, unknown>;
+    try {
+      const content = await Deno.readTextFile(filePath);
+      const loaded = parse(content) as Record<string, unknown>;
+      const languages = loaded.languages as Record<string, unknown> | undefined;
 
-        // Start with default languages
-        const mergedLanguages: Record<string, LanguageConfig> = {
-          ...this.data.languages,
-        };
-
-        // Merge in languages from config file
+      if (languages) {
         for (const [lang, config] of Object.entries(languages)) {
-          if (typeof config === "object" && config !== null) {
-            const langConfig = config as Record<string, unknown>;
-
-            mergedLanguages[lang] = {
-              runner: typeof langConfig.runner === "string"
-                ? langConfig.runner
-                : mergedLanguages[lang]?.runner || "unknown",
-
-              flags: Array.isArray(langConfig.flags)
-                ? langConfig.flags.filter((f) => typeof f === "string") as string[]
-                : mergedLanguages[lang]?.flags || [],
-
-              directories: Array.isArray(langConfig.directories)
-                ? langConfig.directories.filter((d) => typeof d === "string" ) as string[]
-                : mergedLanguages[lang]?.directories || [],
-            };
-          }
+          this.data.languages[lang] = mergeLanguageConfig(
+            config,
+            this.data.languages[lang],
+          );
         }
-
-        this.data.languages = mergedLanguages;
-
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`Error loading config file: ${errorMessage}`);
       }
+    } catch (error) {
+      console.error(
+        `Error loading config: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
-
-    return this;
   }
 
   async save(): Promise<boolean> {
     try {
-      // Convert ConfigData to a structure compatible with stringify
-      const configRecord: Record<string, unknown> = {
-        languages: this.data.languages,
-      };
-
-      const configContent = stringify(configRecord);
-      await Deno.writeTextFile(join(Deno.cwd(), this.path), configContent);
+      const content = stringify({ languages: this.data.languages });
+      const filePath = isAbsolute(this.path) ? this.path : join(Deno.cwd(), this.path);
+      await Deno.writeTextFile(filePath, content);
       return true;
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`Failed to save config: ${errorMessage}`);
+    } catch (error) {
+      console.error(
+        `Failed to save config: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return false;
     }
   }
@@ -100,7 +96,7 @@ export class Config {
     return this.data.languages[extension];
   }
 
-  get supportedExtensions(): string[] {
+  supportedExtensions(): string[] {
     return Object.keys(this.data.languages);
   }
 
@@ -109,7 +105,7 @@ export class Config {
   }
 
   removeLanguage(extension: string): boolean {
-    if (this.data.languages[extension]) {
+    if (extension in this.data.languages) {
       delete this.data.languages[extension];
       return true;
     }

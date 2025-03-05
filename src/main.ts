@@ -69,7 +69,7 @@ try {
 
   if (filesProcessed === 0) {
     console.log(yellow("No matching files found in the specified directory."));
-    console.log(`Configured extensions: ${config.supportedExtensions.map(ext => `.${ext}`).join(", ")}`);
+    console.log(`Configured extensions: ${config.supportedExtensions().map(ext => `.${ext}`).join(", ")}`);
   }
 } catch (error: unknown) {
   const errorMessage = error instanceof Error ? error.message : String(error);

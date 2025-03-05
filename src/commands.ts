@@ -20,7 +20,7 @@ export function showHelp() {
 export function listLanguages(config: Config) {
   console.log(bold(underline("Configured Languages:")));
 
-  for (const lang of config.supportedExtensions) {
+  for (const lang of config.supportedExtensions()) {
     const langConfig = config.getLanguageConfig(lang);
     if (langConfig) {
       console.log(bold(`\n.${lang} files:`));
