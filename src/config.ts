@@ -1,6 +1,7 @@
 import { exists } from "@std/fs";
 import { join, isAbsolute } from "@std/path";
 import { parse, stringify } from "@std/toml";
+import { isConfigObject, getDefaultLanguageConfig, getRunner, getFlags, getDirectories } from "../utils/parse.ts";
 
 export type LanguageConfig = {
   runner: string;
@@ -25,23 +26,22 @@ const DEFAULT_LANGUAGES: Record<string, LanguageConfig> = {
   },
 } as const;
 
+
+
 function mergeLanguageConfig(
   loaded: unknown,
   defaultConfig?: LanguageConfig,
 ): LanguageConfig {
-  if (typeof loaded !== "object" || loaded === null) {
-    return defaultConfig ?? { runner: "unknown", flags: [], directories: [] };
+  const config = loaded as LanguageConfig;
+
+  if (!isConfigObject(loaded)) {
+    return defaultConfig ?? getDefaultLanguageConfig();
   }
 
-  const obj = loaded as Record<string, unknown>;
   return {
-    runner: typeof obj.runner === "string" ? obj.runner : defaultConfig?.runner ?? "unknown",
-    flags: Array.isArray(obj.flags)
-      ? obj.flags.filter((f): f is string => typeof f === "string")
-      : defaultConfig?.flags ?? [],
-    directories: Array.isArray(obj.directories)
-      ? obj.directories.filter((d): d is string => typeof d === "string")
-      : defaultConfig?.directories ?? [],
+    runner: getRunner(config, defaultConfig?.runner ?? "unknown"),
+    flags: getFlags(config, defaultConfig?.flags ?? []),
+    directories: getDirectories(config, defaultConfig?.directories ?? []),
   };
 }
 
@@ -92,7 +92,7 @@ export class Config {
     }
   }
 
-  getLanguageConfig(extension: string): LanguageConfig | undefined {
+  getLanguageConfig(extension: string): LanguageConfig {
     return this.data.languages[extension];
   }
 
