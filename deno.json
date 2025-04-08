@@ -2,7 +2,8 @@
   "tasks": {
     "run": "deno run --allow-read --allow-run --allow-write ./src/main.ts scripts",
     "build": "deno compile --output commander --allow-read --allow-run --allow-write ./src/main.ts",
-    "test": "deno test --allow-read --allow-run --allow-write"
+    "test": "deno test --allow-read --allow-run --allow-write",
+    "lint": "deno lint && deno fmt"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@^1.0.11",
@@ -12,5 +13,17 @@
     "@std/path": "jsr:@std/path@^1.0.8",
     "@std/text": "jsr:@std/text@^1.0.10",
     "@std/toml": "jsr:@std/toml@^1.0.2"
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 80,
+    "indentWidth": 2,
+    "semiColons": false,
+    "singleQuote": false,
+    "include": ["src/", "scripts/", "tests/", "utils/", "deno.json"],
+    "exclude": ["src/commands.ts"]
+  },
+  "lint": {
+    "include": ["src/", "scripts/", "tests/", "utils/", "deno.json"]
   }
 }
