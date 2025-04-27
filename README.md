@@ -16,7 +16,7 @@ deno task build
 You can also try a showcase of the tool by running the following command:
 
 ```bash
-commander tests
+commander scripts
 ```
 
 This will run all files in the `tests` directory with the `.ts` and `.js` extensions.
